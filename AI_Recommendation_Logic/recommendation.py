@@ -57,8 +57,8 @@ resolution = resolution_options.get(resolution_choice, "Invalid Choice")
 ram_required = int(input("\nRequired RAM (GB): "))
 
 print("\nStorage unit:")
-print("1. GB")
-print("2. TB")
+print("1- GB")
+print("2- TB")
 
 storage_unit_choice = int(input("Enter choice (1-2): "))
 
@@ -130,3 +130,51 @@ if storage_unit_choice == 1:
     print(f"Storage Required: {storage_required_gb:.0f} GB")
 else:
     print(f"Storage Required: {storage_required_gb / 1000:g} TB")
+
+print("\nPRICE CHECK")
+print("--------------------------------")
+
+print("Cheapest CPU:", suitable_cpus["Price_USD"].min())
+print("Cheapest GPU:", suitable_gpus["Price_USD"].min())
+print("Cheapest RAM:", suitable_ram["Price_USD"].min())
+print("Cheapest Storage:", suitable_storage["Price_USD"].min())
+
+minimum_possible_price = (
+    suitable_cpus["Price_USD"].min()
+    + suitable_gpus["Price_USD"].min()
+    + suitable_ram["Price_USD"].min()
+    + suitable_storage["Price_USD"].min()
+)
+
+print("--------------------------------")
+print(f"Minimum possible price: ${minimum_possible_price:,.2f}")
+print(f"Your budget: ${budget:,.2f}")
+
+for _, cpu in suitable_cpus.iterrows():
+
+    for _, gpu in suitable_gpus.iterrows():
+
+        for _, ram_item in suitable_ram.iterrows():
+
+            for _, storage_item in suitable_storage.iterrows():
+
+                total_price = (
+                    cpu["Price_USD"]
+                    + gpu["Price_USD"]
+                    + ram_item["Price_USD"]
+                    + storage_item["Price_USD"]
+                )
+
+                if total_price <= budget:
+
+                    print("\n================================")
+                    print("       BUDGET VALID BUILD")
+                    print("================================")
+
+                    print("CPU:", cpu["Model"])
+                    print("GPU:", gpu["Model"])
+                    print("RAM:", ram_item["Model"])
+                    print("Storage:", storage_item["Model"])
+
+                    print("--------------------------------")
+                    print(f"Total Price: ${total_price:,.2f}")

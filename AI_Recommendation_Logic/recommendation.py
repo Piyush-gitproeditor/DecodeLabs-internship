@@ -2,8 +2,8 @@ import pandas as pd
 from pathlib import Path
 # LOAD DATASET
 from motherboards import find_motherboards_for_cpu
-from compatibility import (cpu_motherboard_compatible, motherboard_ram_compatible,gpu_case_compatible)
-
+from compatibility import cpu_motherboard_compatible, motherboard_ram_compatible
+from scoring import calculate_score, generate_explanation
 
 dataset_path = Path(__file__).resolve().parent / "PCBuilder_Recommendation_Dataset.xlsx"
 df = pd.read_excel(dataset_path)
@@ -92,18 +92,18 @@ suitable_ram = ram[
     ram["Capacity_or_VRAM_GB"] >= ram_required
 ]
 
-print("\nSuitable RAM:")
-print(suitable_ram[["Brand", "Model", "Capacity_or_VRAM_GB", "Price_USD"]])
+# print("\nSuitable RAM:")
+# print(suitable_ram[["Brand", "Model", "Capacity_or_VRAM_GB", "Price_USD"]])
 
 
 suitable_storage = storage[
     storage["Capacity_or_VRAM_GB"] >= storage_required_gb
 ]
 
-print("\nSuitable Storage:")
-print(suitable_storage[
-    ["Brand", "Model", "Capacity_or_VRAM_GB", "Price_USD"]
-])
+# print("\nSuitable Storage:")
+# print(suitable_storage[
+#     ["Brand", "Model", "Capacity_or_VRAM_GB", "Price_USD"]
+# ])
 
 # CPU candidates
 suitable_cpus = cpus.copy()
@@ -111,15 +111,15 @@ suitable_cpus = cpus.copy()
 # GPU candidates
 suitable_gpus = gpus.copy()
 
-print("\nSuitable CPUs:")
-print(suitable_cpus[
-    ["Brand", "Model", "Price_USD", "Benchmark_Score_0_100"]
-])
+# print("\nSuitable CPUs:")
+# print(suitable_cpus[
+#     ["Brand", "Model", "Price_USD", "Benchmark_Score_0_100"]
+# ])
 
-print("\nSuitable GPUs:")
-print(suitable_gpus[
-    ["Brand", "Model", "Price_USD", "Benchmark_Score_0_100"]
-])
+# print("\nSuitable GPUs:")
+# print(suitable_gpus[
+#     ["Brand", "Model", "Price_USD", "Benchmark_Score_0_100"]
+# ])
 
 # DISPLAY USER PROFILE
 
@@ -184,6 +184,7 @@ for _, cpu in suitable_cpus.iterrows():
                         )
 
                         if total_price <= budget:
+                            score = calculate_score(cpu,gpu,primary_use,total_price)
 
                             valid_builds.append({
                                 "CPU": cpu["Model"],
@@ -192,12 +193,47 @@ for _, cpu in suitable_cpus.iterrows():
                                 "RAM": ram_item["Model"],
                                 "Storage": storage_item["Model"],
                                 "Case": case["Model"],
-                                "Total_Price": total_price
-                            })
-print("\n                            ")
-print("       BUILD GENERATION")
-print("                                 ")
+                                "Total_Price": total_price,
+                                 "Score": score
+                                 })
+                          
+# print("\nSCORED BUILDS")
+# print("--------------------------------")
+#
+# for build in valid_builds[:5]:
+#     print(build)
 
-print(f"Total valid builds: {len(valid_builds)}")
+valid_builds.sort(
+    key=lambda build: build["Score"],
+    reverse=True
+)
+for build in valid_builds[:3]:
 
+    build["Explanation"] = generate_explanation(
+        build,
+        primary_use,
+        budget,
+        ram_required,
+        storage_required_gb
+    )
+
+print("\nTOP 3 RECOMMENDED BUILDS")
+print("================================")
+
+for i, build in enumerate(valid_builds[:3], start=1):
+
+    print(f"\nBUILD #{i}")
+    print("--------------------------------")
+    print("CPU:", build["CPU"])
+    print("Motherboard:", build["Motherboard"])
+    print("GPU:", build["GPU"])
+    print("RAM:", build["RAM"])
+    print("Storage:", build["Storage"])
+    print("Case:", build["Case"])
+    print(f"Total Price: ${build['Total_Price']:,.2f}")
+    print(f"Recommendation Score: {build['Score']}/100")
+    print("Why this build?")
+
+for reason in build["Explanation"]:
+    print("•", reason)
 

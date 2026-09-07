@@ -1,7 +1,12 @@
 import pandas as pd
+from pathlib import Path
 # LOAD DATASET
+from motherboards import find_motherboards_for_cpu
+from compatibility import (cpu_motherboard_compatible, motherboard_ram_compatible,gpu_case_compatible)
 
-df = pd.read_excel("PCBuilder_Recommendation_Dataset.xlsx")
+
+dataset_path = Path(__file__).resolve().parent / "PCBuilder_Recommendation_Dataset.xlsx"
+df = pd.read_excel(dataset_path)
 
 # SEPARATE COMPONENTS
 
@@ -150,31 +155,64 @@ print("--------------------------------")
 print(f"Minimum possible price: ${minimum_possible_price:,.2f}")
 print(f"Your budget: ${budget:,.2f}")
 
+valid_builds = []
 for _, cpu in suitable_cpus.iterrows():
 
-    for _, gpu in suitable_gpus.iterrows():
+    for _, motherboard in motherboards.iterrows():
 
-        for _, ram_item in suitable_ram.iterrows():
+        if not cpu_motherboard_compatible(cpu, motherboard):
+            continue
 
-            for _, storage_item in suitable_storage.iterrows():
+        for _, gpu in suitable_gpus.iterrows():
 
-                total_price = (
-                    cpu["Price_USD"]
-                    + gpu["Price_USD"]
-                    + ram_item["Price_USD"]
-                    + storage_item["Price_USD"]
-                )
+            for _, ram_item in suitable_ram.iterrows():
 
-                if total_price <= budget:
+                if not motherboard_ram_compatible(motherboard, ram_item):
+                    continue
 
-                    print("\n================================")
-                    print("       BUDGET VALID BUILD")
-                    print("================================")
+                for _, storage_item in suitable_storage.iterrows():
 
-                    print("CPU:", cpu["Model"])
-                    print("GPU:", gpu["Model"])
-                    print("RAM:", ram_item["Model"])
-                    print("Storage:", storage_item["Model"])
+                    for _, case in cases.iterrows():
 
-                    print("--------------------------------")
-                    print(f"Total Price: ${total_price:,.2f}")
+                        total_price = (
+                            cpu["Price_USD"]
+                            + motherboard["Price_USD"]
+                            + gpu["Price_USD"]
+                            + ram_item["Price_USD"]
+                            + storage_item["Price_USD"]
+                            + case["Price_USD"]
+                        )
+
+                        if total_price <= budget:
+
+                            valid_builds.append({
+                                "CPU": cpu["Model"],
+                                "Motherboard": motherboard["Model"],
+                                "GPU": gpu["Model"],
+                                "RAM": ram_item["Model"],
+                                "Storage": storage_item["Model"],
+                                "Case": case["Model"],
+                                "Total_Price": total_price
+                            })
+print("\n                            ")
+print("       BUILD GENERATION")
+print("                                 ")
+
+print(f"Total valid builds: {len(valid_builds)}")
+
+gpu = suitable_gpus.iloc[0]
+case = cases.iloc[0]
+
+print(
+    "GPU ↔ Case:",
+    gpu_case_compatible(gpu, case)
+)
+
+print("--------------------------------")
+print("Compatible GPU-Case combinations:", compatible_count)
+
+print("\nGPU DATA")
+print(suitable_gpus[["Model", "Length_mm"]].to_string(index=False))
+
+print("\nCASE DATA")
+print(cases[["Model"]].to_string(index=False))

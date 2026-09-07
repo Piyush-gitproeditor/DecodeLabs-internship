@@ -200,19 +200,4 @@ print("                                 ")
 
 print(f"Total valid builds: {len(valid_builds)}")
 
-gpu = suitable_gpus.iloc[0]
-case = cases.iloc[0]
 
-print(
-    "GPU ↔ Case:",
-    gpu_case_compatible(gpu, case)
-)
-
-print("--------------------------------")
-print("Compatible GPU-Case combinations:", compatible_count)
-
-print("\nGPU DATA")
-print(suitable_gpus[["Model", "Length_mm"]].to_string(index=False))
-
-print("\nCASE DATA")
-print(cases[["Model"]].to_string(index=False))

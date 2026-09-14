@@ -1,18 +1,21 @@
 import cv2
 import pytesseract
 
-# Image Loading 
-image =cv2.imread("input/image.jpg")
+# Load the image
+image = cv2.imread("input/image.jpg")
 
-#Checking for the image 
+# Check if image was loaded successfully
 if image is None:
-    print("Error- Image not found !")
+    print("ERROR: Image could not be loaded.")
     exit()
 
-# Extracting text
+print("Image loaded successfully!")
+print("Image size:", image.shape)
+
+# Perform OCR
 text = pytesseract.image_to_string(image)
 
-# End results
-print("\n        Recognized text       \n")
+# Display the recognized text
+print("\n========== RECOGNIZED TEXT ==========\n")
 print(text)
-print("\n                               \n")
+print("                                         ")

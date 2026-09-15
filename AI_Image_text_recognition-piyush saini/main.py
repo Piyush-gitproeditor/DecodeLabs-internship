@@ -14,12 +14,12 @@ print("Image size:", image.shape)
 
 #apply grayscale 
 gray= cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-cv2.imwrite("gray.jpg", gray)
+cv2.imwrite("output/gray.jpg", gray)
 print ("grayscale image created successfully")
 
 # Apply threshold 
 threshold = cv2.adaptiveThreshold (gray, 255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,cv2.THRESH_BINARY,31,11)
-cv2.imwrite("threshold.jpg", threshold)
+cv2.imwrite("output/threshold.jpg", threshold)
 print("Adaptive threshold image created Successfully")
 # Perform OCR
 text = pytesseract.image_to_string(threshold)
@@ -49,20 +49,8 @@ for i in range(len(data["text"])):
     word = data["text"][i].strip()
     confidence = float(data["conf"][i])
 
-    if word != "" and confidence >= 80:
-
-        x = data["left"][i]
-        y = data["top"][i]
-        w = data["width"][i]
-        h = data["height"][i]
-
-        cv2.rectangle(
-            annotated,
-            (x, y),
-            (x + w, y + h),
-            (0, 255, 0),
-            2
-        )
+    if word != "" and confidence >= 0:
+        confidences.append(confidence)
 
 # Save annotated image
 cv2.imwrite("output/annotated_output.png", annotated)

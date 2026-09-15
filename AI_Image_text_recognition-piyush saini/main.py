@@ -40,8 +40,41 @@ if confidences:
         print("Status: Pass")
     else:
         print("Status : Below 80%")
+# Create a copy of the original image
+annotated = image.copy()
+
+# Draw bounding boxes around detected text
+for i in range(len(data["text"])):
+
+    word = data["text"][i].strip()
+    confidence = float(data["conf"][i])
+
+    if word != "" and confidence >= 80:
+
+        x = data["left"][i]
+        y = data["top"][i]
+        w = data["width"][i]
+        h = data["height"][i]
+
+        cv2.rectangle(
+            annotated,
+            (x, y),
+            (x + w, y + h),
+            (0, 255, 0),
+            2
+        )
+
+# Save annotated image
+cv2.imwrite("output/annotated_output.png", annotated)
+
+print("Annotated image saved to output/annotated_output.png")
 
 # Display the recognized text
 print("\n========== RECOGNIZED TEXT ==========\n")
 print(text)
+# Save recognized text to a file
+with open("output/extracted_text.txt", "w", encoding="utf-8") as file:
+    file.write(text)
+
+print("\nRecognized text saved to output/extracted_text.txt")
 print("                                         ")

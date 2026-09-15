@@ -12,23 +12,28 @@ if image is None:
 print("Image loaded successfully!")
 print("Image size:", image.shape)
 
+#apply grayscale 
+gray= cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+cv2.imwrite("gray.jpg", gray)
+print ("grayscale image created successfully")
+
+# Apply threshold 
+threshold = cv2.adaptiveThreshold (gray, 255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,cv2.THRESH_BINARY,31,11)
+cv2.imwrite("threshold.jpg", threshold)
+print("Adaptive threshold image created Successfully")
 # Perform OCR
-#text = pytesseract.image_to_string(image)
-data= pytesseract.image_to_data(image, output_type=pytesseract.Output.DICT)
+text = pytesseract.image_to_string(threshold)
+data= pytesseract.image_to_data(threshold, output_type=pytesseract.Output.DICT)
 print("\n============OCR RESULTS============\n")
-t_confidence=0
-count =0
-for i in range(len(data["text"])):
-    word= data["text"][i].strip()
-    confidence = float(data["conf"][i])
+confidences=[]
+for confidence in data["conf"]:
+    confidence = float(confidence)
 
-    if word != "" and confidence >=0:
-        print(word," confidence:",confidence)
-        t_confidence += confidence
-        count +=1
+    if confidence >=0:
+        confidences.append(confidence)
 
-if count>0:
-    avg_confidence = t_confidence/count
+if confidences:
+    avg_confidence = sum(confidences)/ len(confidences)
     print("\n Average confidence:", round(avg_confidence,2),"%")
 
     if avg_confidence>=80:
